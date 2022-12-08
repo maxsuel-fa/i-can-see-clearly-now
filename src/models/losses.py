@@ -1,7 +1,6 @@
 import torch
 import torch.nn as nn
 
-
 # Adversarial loss
 class AdvLoss(nn.Module):
     def __init__(self):
@@ -27,8 +26,8 @@ class DiscLoss(nn.Module):
         derained_loss = self.criterion(derained_pred,
                                        self.derained_label.expand_as(derained_pred))
 
-        return (clear_loss + derained_loss) * 0.5
-
+        return clear_loss + derained_loss
+        
 # Feature Matching loss
 class FMLoss(nn.Module):
     def __init__(self):
@@ -40,7 +39,7 @@ class FMLoss(nn.Module):
         loss = 0
         for idx in range(len(clear_feat_list)):
             loss += self.weights[idx] * self.criterion(clear_feat_list[idx],
-                                                      derained_feat_list[idx])
+                                                       derained_feat_list[idx])
         return loss
 
 # VGG loss (perceptual loss)
@@ -65,7 +64,7 @@ from torchvision import models
 class Vgg19(torch.nn.Module):
     def __init__(self, requires_grad=False):
         super(Vgg19, self).__init__()
-        vgg_pretrained_features = models.vgg19(pretrained=True).features
+        vgg_pretrained_features = models.vgg19(weights='DEFAULT').features
         self.slice1 = torch.nn.Sequential()
         self.slice2 = torch.nn.Sequential()
         self.slice3 = torch.nn.Sequential()
@@ -93,4 +92,6 @@ class Vgg19(torch.nn.Module):
         h_relu5 = self.slice5(h_relu4)
         out = [h_relu1, h_relu2, h_relu3, h_relu4, h_relu5]
         return out
+
+
 

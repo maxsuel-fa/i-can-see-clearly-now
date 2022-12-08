@@ -20,12 +20,13 @@ class GeneralOptions:
         return self.parser.parse_args()
 
 
-
-
 class TrainingOptions(GeneralOptions):
     def __init__(self) -> None:
         super(TrainingOptions, self).__init__()
         # Paths for the images used in the training regime
+        self.parser.add_argument('--savedir', dest='save_dir',
+                                 type=str,
+                                 help='pat')
         self.parser.add_argument('--cleardir', dest='clear_dir',
                                  type=str,
                                  help='path to the clear images')
@@ -54,4 +55,5 @@ class TrainingOptions(GeneralOptions):
                                  type=int, default=12,
                                  help='''batch size used in the 
                                  training regime''')
+
 

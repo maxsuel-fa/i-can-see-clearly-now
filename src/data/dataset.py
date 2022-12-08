@@ -1,39 +1,36 @@
 import torch
 import torch.utils.data as data
-from torchvision.io import read_image
-from torchvision.transforms import Resize
+from torchvision.transforms import Resize, ToTensor, Compose, RandomCrop
 from torch import Tensor
 import os
+from PIL import Image
 
-def get_paths(dir: str) -> list:
+def get_paths(dir: str, max_dataset_size=10000) -> list:
     paths = []
     for dir_name, _, file_names in os.walk(dir):
         for file_name in sorted(file_names):
             paths += [os.path.join(dir_name, file_name)] 
-    return paths
+    dataset_len = len(paths)
+    return paths[:min(dataset_len, max_dataset_size)]
 
 class Dataset(data.Dataset):
-    def __init__(self, clear_dir: str, rainy_dir: str, device: str) -> None:
+    def __init__(self, clear_dir: str, rainy_dir: str, 
+                 device: str, max_dataset_size: int) -> None:
         super(Dataset, self).__init__()
-        self.clear_paths = get_paths(clear_dir)
-        self.rainy_paths = get_paths(rainy_dir)
-        self.transform = Resize((688, 768))
+        self.clear_paths = get_paths(clear_dir, max_dataset_size)
+        self.rainy_paths = get_paths(rainy_dir, max_dataset_size)
+        transforms = [Resize((688, 768)), ToTensor()]
+        self.transform = Compose(transforms)
         self.device = device
 
     def __len__(self) -> int:
         return len(self.clear_paths)
 
     def __getitem__(self, index) -> tuple:
-        clear_image = read_image(self.clear_paths[index])
-        clear_image = torch.unsqueeze(clear_image, dim=0)
-        clear_image = self.transform(clear_image)
-        clear_image = clear_image.to(self.device, dtype=torch.float)
+        clear_image = Image.open(self.clear_paths[index])
+        clear_image = self.transform(clear_image.convert('RGB'))
 
-        rainy_image = read_image(self.rainy_paths[index])
-        rainy_image = torch.unsqueeze(rainy_image, dim=0)
-        rainy_image = self.transform(rainy_image)
-        rainy_image = rainy_image.to(self.device, dtype=torch.float)
+        rainy_image = Image.open(self.rainy_paths[index])
+        rainy_image = self.transform(rainy_image.convert('RGB'))
 
         return clear_image, rainy_image
-
-
